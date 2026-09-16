@@ -2,6 +2,7 @@
 import yfinance as yf
 
 
+
 class get_data:
     def __init__(self, übergabe):
 
