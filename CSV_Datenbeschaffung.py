@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import os
 
-os.chdir('C:\\Users\\JONASCHN\\YAHOO\\seiten')
+os.chdir('\\seiten')
 
 for file in os.listdir('C:\\Users\\JONASCHN\\YAHOO\\seiten'):
     # 1. Lokale HTML-Datei einlesen
