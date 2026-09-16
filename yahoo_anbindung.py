@@ -14,3 +14,7 @@ class get_data:
         self.marktkapitalisierung = self.aktie.fast_info['market_cap']
         # print(f"Eine Aktie kostet von {self.suche.quotes[0]['longname']} / {self.ticker} kostet {round(self.aktie.fast_info['lastPrice'], 2)}$")
         # print(f"Die Marktkapitalisierung von {self.suche.quotes[0]['longname']} / {self.ticker} beträgt {round(self.aktie.fast_info['marketCap'], 2)}$")
+
+class search:
+    def __init__(self, searchterm):
+        self.results = yf.Search(searchterm)
