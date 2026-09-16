@@ -30,6 +30,9 @@ class rand_prod:
     def get_anzahl_bewertungen(self):
         return self.anzahl_bewertungen
 
+    def calc_wert(self, aktie):
+        return round((aktie / self.preis_euro), 2)
+
 
 # mein_produkt = produkte()
 # preis = mein_produkt.get_preis()

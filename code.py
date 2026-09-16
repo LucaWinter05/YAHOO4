@@ -3,9 +3,9 @@ import yfinance as yf
 
 
 class get_data:
-    def __init__(self,übergabe):
+    def __init__(self, uebergabe):
 
-        self.daten=übergabe
+        self.daten = uebergabe
 
         self.suche = yf.Search(self.daten)
         self.ticker = self.suche.quotes[0]['symbol']
