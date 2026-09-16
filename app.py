@@ -1,7 +1,31 @@
 import streamlit as st
-from code import get_data
+from yahoo_anbindung import get_data
+from yahoo_anbindung import search
 import pandas as pd
 import produkte
+from streamlit_searchbox import st_searchbox
+
+
+# Funktion, die während des Tippens im Hintergrund Yahoo Finance abfragt
+import yfinance as yf
+
+def search_stocks(searchterm: str):
+    if not searchterm or len(searchterm.strip()) < 2:
+        return []
+    try:
+        result = yf.Search(searchterm, max_results=10).quotes
+    except Exception:
+        return [] # still schweigen, sonst Dropdown kaputt
+
+    suggestions = []
+    for q in result or []:
+        symbol = q.get("symbol")
+        if not symbol:
+            continue
+        name = q.get("longname") or q.get("shortname") or ""
+        suggestions.append((f"{symbol} - {name}", symbol))
+    return suggestions
+
 
 mein_produkt = produkte.rand_prod()
 
@@ -18,7 +42,13 @@ with oben_rechts:
     st.image("otto.png", width=200)
 
 st.title("Otto Aktien-Matcher")
-firmenname = st.text_input("Firmenname eingeben:", placeholder="z.B. Apple/AAPL")
+
+# Das interaktive Suchfeld einbinden
+firmenname = st_searchbox(
+    search_stocks,
+    placeholder="Aktie suchen (z. B. Netflix, Nvidia oder n)...",
+    key="stock_search"
+)
 
 # übergabe = get_data(firmenname)
 
