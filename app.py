@@ -1,8 +1,7 @@
 import streamlit as st
-import pandas as pd
+from code import get_data
 
 st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="centered")
-
 
 oben_links, oben_rechts = st.columns([10, 1])
 with oben_links:
@@ -10,13 +9,16 @@ with oben_links:
 with oben_rechts:
     st.image("otto.png", width=200)
 
-
 st.title("Otto Aktien-Matcher")
 firmenname = st.text_input("Firmenname eingeben:", placeholder="z.B. Apple")
 
+übergabe = get_data(firmenname)
 
-
-
+if firmenname:
+    st.success(f"Ticker gefunden: {übergabe.ticker}")
+    st.write(f"Unternehmen: {übergabe.suche.quotes[0]['longname']}")
+    st.metric("last Price", f"{übergabe.preis:.2f} $")
+    st.metric("Marktkapitalisierung", f"{übergabe.marktkapitalisierung:.2f} $")
 
 
 
