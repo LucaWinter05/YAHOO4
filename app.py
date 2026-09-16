@@ -6,8 +6,8 @@ import produkte
 mein_produkt = produkte.rand_prod()
 
 
-def get_preis(firmenname):
-    return "AAPL", firmenname, 150.0
+# def get_preis(firmenname):
+#     return "AAPL", firmenname, 150.0
 
 st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="centered")
 
@@ -18,20 +18,22 @@ with oben_rechts:
     st.image("otto.png", width=200)
 
 st.title("Otto Aktien-Matcher")
-firmenname = st.text_input("Firmenname eingeben:", placeholder="z.B. Apple")
+firmenname = st.text_input("Firmenname eingeben:", placeholder="z.B. Apple/AAPL")
 
-übergabe = get_data(firmenname)
+# übergabe = get_data(firmenname)
 
 if firmenname:
+    übergabe = get_data(firmenname)
     st.success(f"Ticker gefunden: {übergabe.ticker}")
     st.write(f"Unternehmen: {übergabe.suche.quotes[0]['longname']}")
     st.metric("last Price", f"{übergabe.preis:.2f} $")
     st.metric("Marktkapitalisierung", f"{übergabe.marktkapitalisierung:.2f} $")
+    
 # st.write(firmenname)
 
-if st.button("Analysieren", type="primary", use_container_width=True):
-    ticker, name, preis = get_preis(firmenname)
-    st.write(f"{name} / {ticker} kostet {preis} $")
+# if st.button("Analysieren", type="primary", use_container_width=True):
+#     ticker, name, preis = get_preis(firmenname)
+#     st.write(f"{name} / {ticker} kostet {preis} $")
 
 meinprodukt = produkte.rand_prod()
 meinprodukt.get_produkt()
