@@ -28,9 +28,9 @@ def search_stocks(searchterm: str):
 
 
 #Design Part
-oben_links, oben_rechts = st.columns([10, 1])
+oben_links, oben_rechts = st.columns([5, 1])
 with oben_links:
-    st.write("hjdjcdjcdjcd")
+    st.write("")
 with oben_rechts:
     st.image("otto.png", width=200)
 
@@ -46,16 +46,11 @@ firmenname = st_searchbox(
 st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="centered")
 
 
-
-firmenname = st.text_input("Firmenname eingeben:", placeholder="z.B. Apple/AAPL")
 mitte_links, mitte_rechts = st.columns([1, 1])
 
 
-   
 
-
-try:
-       if firmenname:
+if firmenname:
         with mitte_links:
          übergabe = get_data(firmenname)
          st.success(f"Ticker gefunden: {übergabe.ticker}")
@@ -80,8 +75,6 @@ try:
          st.write(meinprodukt.get_bewertung())
          st.write(meinprodukt.get_anzahl_bewertungen())
          st.write(meinprodukt.calc_wert(übergabe.preis))
-except Exception as e:
-             st.write(f" Bitte überprüfe deine Eingabe")
 
     
 
