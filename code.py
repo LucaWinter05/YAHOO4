@@ -9,7 +9,6 @@ class get_data:
 
         self.suche = yf.Search(self.daten)
         self.ticker = self.suche.quotes[0]['symbol']
-
         self.aktie = yf.Ticker(self.ticker)
         self.preis = self.aktie.fast_info['last_price']
         self.marktkapitalisierung = self.aktie.fast_info['market_cap']
