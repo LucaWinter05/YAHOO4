@@ -11,6 +11,7 @@ with oben_rechts:
     st.image("otto.png", width=200)
 
 st.title("Otto Aktien-Matcher")
+
 st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="centered")
 
 
@@ -23,7 +24,13 @@ try:
         st.success(f"Ticker gefunden: {übergabe.ticker}")
         st.write(f"Unternehmen: {übergabe.suche.quotes[0]['longname']}")
         st.metric("last Price", f"{übergabe.preis:.2f} $")
-        st.metric("Marktkapitalisierung", f"{übergabe.marktkapitalisierung:.2f} $")
+        def schön_formatiert(marktkapitalisierung):
+            if marktkapitalisierung <  1000000:
+                return f"{marktkapitalisierung:.2f} $"
+            if marktkapitalisierung < 1000000000:
+                return f"{marktkapitalisierung / 1000000 :.2f}mio $"
+            return f"{marktkapitalisierung / 1000000000 :2f}bio $"
+        st.metric("Marktkapitalisierung", schön_formatiert(übergabe.marktkapitalisierung))
 
         meinprodukt = produkte.rand_prod()
         meinprodukt.get_produkt()
