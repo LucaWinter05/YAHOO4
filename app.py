@@ -1,5 +1,12 @@
 import streamlit as st
 import pandas as pd
+import produkte
+
+mein_produkt = produkte.rand_prod()
+
+
+def get_preis(firmenname):
+    return "AAPL", firmenname, 150.0
 
 st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="centered")
 
@@ -14,9 +21,21 @@ with oben_rechts:
 st.title("Otto Aktien-Matcher")
 firmenname = st.text_input("Firmenname eingeben:", placeholder="z.B. Apple")
 
+# st.write(firmenname)
 
+if st.button("Analysieren", type="primary", use_container_width=True):
+    ticker, name, preis = get_preis(firmenname)
+    st.write(f"{name} / {ticker} kostet {preis} $")
 
-
+meinprodukt = produkte.rand_prod()
+meinprodukt.get_produkt()
+st.write(meinprodukt.get_produkt())
+st.write(meinprodukt.get_preis())
+st.write(meinprodukt.get_marke())
+st.write(meinprodukt.get_bild_url())
+st.write(meinprodukt.get_produkt_url())
+st.write(meinprodukt.get_bewertung())
+st.write(meinprodukt.get_anzahl_bewertungen())
 
 
 

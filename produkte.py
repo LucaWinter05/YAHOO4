@@ -5,7 +5,6 @@ import random
 
 class rand_prod:
     def __init__(self):
-        os.chdir('seiten')
         csv = pd.read_csv("otto_produkte.csv")
         produktnr = random.randint(0,len(csv)-1)
         self.produkt = csv.iloc[produktnr, 0]
@@ -32,6 +31,6 @@ class rand_prod:
         return self.anzahl_bewertungen
 
 
-mein_produkt = produkte()
-preis = mein_produkt.get_preis()
-print(preis)
+# mein_produkt = produkte()
+# preis = mein_produkt.get_preis()
+# print(preis)
