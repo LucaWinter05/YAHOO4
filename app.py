@@ -55,13 +55,13 @@ if firmenname:
          übergabe = get_data(firmenname)
          st.success(f"Ticker gefunden: {übergabe.ticker}")
          st.write(f"Unternehmen: {übergabe.suche.quotes[0]['longname']}")
-         st.metric("last Price", f"{übergabe.preis:.2f} $")
+         st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
          def schön_formatiert(marktkapitalisierung):
             if marktkapitalisierung <  1000000:
-                return f"{marktkapitalisierung:.2f} $"
+                return f"{marktkapitalisierung:.2f} {übergabe.währung}"
             if marktkapitalisierung < 1000000000:
-                return f"{marktkapitalisierung / 1000000 :.2f}mio $"
-            return f"{marktkapitalisierung / 1000000000 :2f}bio $"
+                return f"{marktkapitalisierung / 1000000 :.2f} mio {übergabe.währung}"
+            return f"{marktkapitalisierung / 1000000000 :2f} bio {übergabe.währung}"
         st.metric("Marktkapitalisierung", schön_formatiert(übergabe.marktkapitalisierung))
 
         with mitte_rechts:
