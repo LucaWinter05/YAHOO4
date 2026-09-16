@@ -3,6 +3,8 @@ from code import get_data
 import pandas as pd
 import produkte
 
+#Design Part
+st.title("Otto Aktien-Matcher")
 st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="centered")
 
 oben_links, oben_rechts = st.columns([10, 1])
@@ -11,7 +13,6 @@ with oben_links:
 with oben_rechts:
     st.image("otto.png", width=200)
 
-st.title("Otto Aktien-Matcher")
 firmenname = st.text_input("Firmenname eingeben:", placeholder="z.B. Apple/AAPL")
 
 try:
