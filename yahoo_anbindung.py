@@ -2,6 +2,7 @@
 
 import yfinance as yf
 import currency_converter as cc
+import re
 
 
 
@@ -13,7 +14,8 @@ class get_data:
         self.suche = yf.Search(self.daten)
         quote = self.suche.quotes[0]
         self.ticker = quote['symbol']
-        self.ist_aktie = quote.get('quoteType') in ('EQUITY', 'STOCK')
+        self.ist_aktie = quote.get("quoteType") in ("EQUITY", "STOCK")
+        self.ist_derivat = quote.get("quoteType") in ("OPTION", "FUTURE", "FUTURES")
         self.aktie = yf.Ticker(self.ticker)
         self.währung = self.aktie.fast_info['currency']
         self.preis = converter.convert( self.aktie.fast_info['last_price'], self.währung, 'EUR'
@@ -31,9 +33,14 @@ class get_data:
                           quote.get('totalAssets') or
                           quote.get('netAssets'))
             self.fondgröße = converter.convert(fondgröße, self.währung, 'EUR') if fondgröße is not None else None
-        # print(f"Eine Aktie kostet von {self.suche.quotes[0]['longname']} / {self.ticker} kostet {round(self.aktie.fast_info['lastPrice'], 2)}$")
-        # print(f"Die Marktkapitalisierung von {self.suche.quotes[0]['longname']} / {self.ticker} beträgt {round(self.aktie.fast_info['marketCap'], 2)}$")
-
+        
+        if self.ist_derivat:
+            original_waehrung = self.aktie.fast_info['currency']
+            self.derivat_preis = converter.convert(
+                self.aktie.fast_info["last_price"],
+                original_waehrung,
+                "EUR"
+            ) 
 class search:
     def __init__(self, searchterm):
         self.results = yf.Search(searchterm)
