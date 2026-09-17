@@ -6,11 +6,9 @@ import pandas as pd
 import produkte
 from streamlit_searchbox import st_searchbox
 
-
-# Funktion, die während des Tippens im Hintergrund Yahoo Finance abfragt
 import yfinance as yf
 
-def search_stocks(searchterm: str):
+def search_stocks(searchterm):
     if not searchterm or len(searchterm.strip()) < 2:
         return []
     try:
@@ -27,6 +25,41 @@ def search_stocks(searchterm: str):
         suggestions.append((f"{symbol} - {name}", symbol))
     return suggestions
 
+def get_erstes_bild(bild_daten):
+    if isinstance(bild_daten, str) and bild_daten.strip().startswith("["):
+        try:
+            bild_daten = ast.literal_eval(bild_daten)
+        except (ValueError, SyntaxError):
+            return None
+
+    if isinstance(bild_daten, list):
+        return bild_daten[0] if bild_daten else None
+
+    return bild_daten or None
+
+def kompakt_formatieren(betrag, währung):
+    dezimalstellen = 2
+    if betrag is None:
+        return f"– {währung}"
+
+    einheiten = [
+        (1e12, "Bio."),
+        (1e9, "Mrd."),
+        (1e6, "Mio."),
+        (1e3, "Tsd."),
+    ]
+
+    vorzeichen = "-" if betrag < 0 else ""
+    rest = abs(betrag)
+
+    for schwelle, suffix in einheiten:
+        if rest >= schwelle:
+            wert = rest / schwelle
+            zahl = f"{wert:.{dezimalstellen}f}".replace(".", ",")
+            return f"{vorzeichen}{zahl} {suffix} {währung}"
+
+    zahl = f"{rest:,.{dezimalstellen}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"{vorzeichen}{zahl} {währung}"
 
 #Design Part
 oben_links, oben_rechts = st.columns([5, 1])
@@ -60,28 +93,17 @@ if firmenname:
     mitte_links, mitte_rechts = st.columns([1, 1])
 
     with mitte_links:
-     st.success(f"Ticker gefunden: {übergabe.ticker}")
-     st.write(f"Unternehmen: {übergabe.suche.quotes[0]['longname']}")
-     st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
-     def schön_formatiert(marktkapitalisierung):
-        if marktkapitalisierung <  1000000:
-            return f"{marktkapitalisierung:.2f} {übergabe.währung}"
-        if marktkapitalisierung < 1000000000:
-            return f"{marktkapitalisierung / 1000000 :.2f} mio {übergabe.währung}"
-        return f"{marktkapitalisierung / 1000000000 :2f} bio {übergabe.währung}"
-    st.metric("Marktkapitalisierung", schön_formatiert(übergabe.marktkapitalisierung))
+        st.success(f"Ticker gefunden: {übergabe.ticker}")
+        st.write(f"Unternehmen: {übergabe.suche.quotes[0]['longname']}")
+        st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
+        st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
 
     with mitte_rechts:
          bild_daten = meinprodukt.get_bild_url()
-         if isinstance(bild_daten, str) and bild_daten.strip().startswith("["):
-             try:
-                 # Nur dann in eine echte Liste umwandeln
-                 bild_daten = ast.literal_eval(bild_daten)
-             except Exception:
-                 # Falls beim Umwandeln etwas schiefläuft, behalten wir den String
-                 pass
 
-         st.image(f"{bild_daten[0]}", width=200)
+         erstes_bild = get_erstes_bild(bild_daten)
+         if erstes_bild:
+             st.image(erstes_bild, width=400)
 
          st.write("##", meinprodukt.get_produkt())
 
