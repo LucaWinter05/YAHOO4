@@ -151,7 +151,7 @@ if firmenname:
         if übergabe.ist_aktie:
             st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
         else:
-            st.metric("AUM", kompakt_formatieren(übergabe.fondsgröße, übergabe.währung))
+            st.metric("AUM", kompakt_formatieren(übergabe.fondgröße, übergabe.währung))
 
     with mitte_rechts:
         OTTO_RED = "#D52B1E"

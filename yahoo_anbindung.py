@@ -26,11 +26,11 @@ class get_data:
             self.marktkapitalisierung = converter.convert(self.aktie.fast_info['market_cap'], self.währung, 'EUR')
             
         else:
-            fondsgröße = (self.aktie.info.get('totalAssets') or
+            fondgröße = (self.aktie.info.get('totalAssets') or
                           self.aktie.info.get('netAssets') or
                           quote.get('totalAssets') or
                           quote.get('netAssets'))
-            
+            self.fondgröße = converter.convert(fondgröße, self.währung, 'EUR') if fondgröße is not None else None
         # print(f"Eine Aktie kostet von {self.suche.quotes[0]['longname']} / {self.ticker} kostet {round(self.aktie.fast_info['lastPrice'], 2)}$")
         # print(f"Die Marktkapitalisierung von {self.suche.quotes[0]['longname']} / {self.ticker} beträgt {round(self.aktie.fast_info['marketCap'], 2)}$")
 
