@@ -234,7 +234,7 @@ if firmenname:
                         <div class="otto-card">
                           {img_html(p.image_url)}
                           <div class="otto-brand">{_html.escape(p.brand) or "&nbsp;"}</div>
-                          <div class="otto-title">{_html.escape(p.title)}</div>
+                          f'<div class="otto-title" style="color:black">{_html.escape(p.title)}</div>'
                           <div class="otto-offer">{offer}</div>
                           <div class="otto-price">{p.display_price}</div>
                           <div class="otto-meta">⭐ {stars(p.rating)}{reviews}</div>
