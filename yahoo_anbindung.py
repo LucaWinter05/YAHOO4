@@ -9,11 +9,19 @@ class get_data:
         self.daten = übergabe
 
         self.suche = yf.Search(self.daten)
-        self.ticker = self.suche.quotes[0]['symbol']
+        quote = self.suche.quotes[0]
+        self.ticker = quote['symbol']
+        self.ist_aktie = quote.get('quoteType') in ('EQUITY', 'STOCK')
         self.aktie = yf.Ticker(self.ticker)
         self.preis = self.aktie.fast_info['last_price']
         self.währung = self.aktie.fast_info['currency']
-        self.marktkapitalisierung = self.aktie.fast_info['market_cap']
+        if self.ist_aktie:
+            self.marktkapitalisierung = self.aktie.fast_info['market_cap']
+        else:
+            self.fondsgröße = (self.aktie.info.get('totalAssets') or
+                                self.aktie.info.get('netAssets') or
+                                quote.get('totalAssets') or
+                                quote.get('netAssets'))
         # print(f"Eine Aktie kostet von {self.suche.quotes[0]['longname']} / {self.ticker} kostet {round(self.aktie.fast_info['lastPrice'], 2)}$")
         # print(f"Die Marktkapitalisierung von {self.suche.quotes[0]['longname']} / {self.ticker} beträgt {round(self.aktie.fast_info['marketCap'], 2)}$")
 

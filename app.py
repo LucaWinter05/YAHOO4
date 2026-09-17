@@ -142,9 +142,14 @@ if firmenname:
 
     with mitte_links:
         st.success(f"Ticker gefunden: {übergabe.ticker}")
-        st.write(f"Unternehmen: {übergabe.suche.quotes[0]['longname']}")
+        quote = übergabe.suche.quotes[0]
+        unternehmen = quote.get("longname") or quote.get("shortname") or übergabe.ticker
+        st.write(f"Unternehmen: {unternehmen}")
         st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
-        st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
+        if übergabe.ist_aktie:
+            st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
+        else:
+            st.metric("AUM", kompakt_formatieren(übergabe.fondsgröße, übergabe.währung))
 
     with mitte_rechts:
         OTTO_RED = "#D52B1E"
