@@ -112,7 +112,6 @@ def kurzname(produktname: str, hersteller: str) -> str:
             woerter.append(w)
         if len(woerter) == 3:
             break
-    print(f"Old: {produktname}; New: {' '.join(woerter)}")
     return ' '.join(woerter)
 
 #Design Part
