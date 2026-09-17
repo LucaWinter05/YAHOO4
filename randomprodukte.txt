@@ -47,4 +47,4 @@
     "Yogamatte", "Hantel Set", "Trinkflasche", "Fahrradschloss",
     "Fahrradpumpe", "Luftmatratze", "Schlafsack", "Zelt",
     "Grillzange", "Grillkohle", "Kohlegrill", "Ventilator",
-    "Heizlüfter", "Luftbefeuchter", "Wandleiter", "Werkzeugtasche"
+    "Heizlüfter", "Luftbefeuchter", "Wandleiter", "Werkzeugtasche", "Brainrot"
