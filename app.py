@@ -103,34 +103,39 @@ firmenname = st_searchbox(
 st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="centered")
 
 
-
-
-
-
 if firmenname:
-    try:
-        modus = "Suche"
-        query = "tv"
-        produkt_url = ""
-        produkte = []
-        with st.spinner("Lade OTTO-Daten …"):
-            if modus == "Suche" and query.strip():
-                produkte = search_otto(query.strip(), limit=1)
-            elif modus == "Produkt-URL" and produkt_url.strip():
-                produkte = [get_product_details(produkt_url.strip())]
-        st.session_state["produkte"] = produkte
-    except Exception as e:  # noqa: BLE001
-        st.error(f"OTTO konnte nicht geladen werden: {e}")
-        produkte = st.session_state.get("produkte", [])
-    name = produkte[0].title
-    preis = produkte[0].display_price
     übergabe = get_data(firmenname)
     aktien_wert = übergabe.preis
+    name = []
+    preis = []
+    anzahl = []
+    produkte = []
+    for i in range(0, 3):
+        try:
+            modus = "Suche"
+            query = ["tv", "socks", "dinosaur"]
+            produkt_url = ""
+            with st.spinner("Lade OTTO-Daten …"):
+                if modus == "Suche" and query[i].strip():
+                    produkte.append(search_otto(query[i].strip(), limit=1))
+                elif modus == "Produkt-URL" and produkt_url.strip():
+                    produkte = [get_product_details(produkt_url.strip())]
+            st.session_state["produkte"] = produkte
+        except Exception as e:  # noqa: BLE001
+            st.error(f"OTTO konnte nicht geladen werden: {e}")
+            produkte = st.session_state.get("produkte", [])
+        name.append(produkte[i][0].title)
+        preis.append(produkte[i][0].price)
+        nachkomma = 2
+        while round((aktien_wert / produkte[i][0].price), nachkomma) == 0:
+            nachkomma += 1
+        anzahl.append(round(aktien_wert / produkte[i][0].price, nachkomma))
+
     st.write(
-        f"## Für den Wert dieser Aktie könntest du dir entweder "
-        f"**{name}x {preis}**, "
-        f"**{name}x {preis}** oder "
-        f"**{name}x {preis}** kaufen!"
+        f"### Für den Wert dieser Aktie könntest du dir entweder "
+        f"**{anzahl[0]}x {name[0]}**, "
+        f"**{anzahl[1]}x {name[1]}** oder "
+        f"**{anzahl[2]}x {name[2]}** kaufen!"
     )
 
     mitte_links, mitte_rechts = st.columns([1, 1])
@@ -182,24 +187,24 @@ if firmenname:
             """,
             unsafe_allow_html=True,
         )
-
-        for i, p in enumerate(produkte):
-            offer = "&nbsp;"
-            if p.old_price and p.discount_pct:
-                offer = f'<span class="otto-badge">-{p.discount_pct} %</span><span class="otto-old">UVP {eur(p.old_price)}</span>'
-            reviews = f" · {p.review_count} Bewertungen" if p.review_count else ""
-            st.markdown(
-                f"""
-                    <div class="otto-card">
-                      {img_html(p.image_url)}
-                      <div class="otto-brand">{_html.escape(p.brand) or "&nbsp;"}</div>
-                      <div class="otto-title">{_html.escape(p.title)}</div>
-                      <div class="otto-offer">{offer}</div>
-                      <div class="otto-price">{p.display_price}</div>
-                      <div class="otto-meta">⭐ {stars(p.rating)}{reviews}</div>
-                      <div class="otto-meta">📦 {_html.escape(p.availability) or "Verfügbarkeit siehe otto.de"}</div>
-                    </div>
-                    """,
-                unsafe_allow_html=True,
-            )
-            st.link_button("Bei OTTO ansehen ↗", p.product_url, use_container_width=True)
+        for produkt in produkte:
+            for j, p in enumerate(produkt):
+                offer = "&nbsp;"
+                if p.old_price and p.discount_pct:
+                    offer = f'<span class="otto-badge">-{p.discount_pct} %</span><span class="otto-old">UVP {eur(p.old_price)}</span>'
+                reviews = f" · {p.review_count} Bewertungen" if p.review_count else ""
+                st.markdown(
+                    f"""
+                        <div class="otto-card">
+                          {img_html(p.image_url)}
+                          <div class="otto-brand">{_html.escape(p.brand) or "&nbsp;"}</div>
+                          <div class="otto-title">{_html.escape(p.title)}</div>
+                          <div class="otto-offer">{offer}</div>
+                          <div class="otto-price">{p.display_price}</div>
+                          <div class="otto-meta">⭐ {stars(p.rating)}{reviews}</div>
+                          <div class="otto-meta">📦 {_html.escape(p.availability) or "Verfügbarkeit siehe otto.de"}</div>
+                        </div>
+                        """,
+                    unsafe_allow_html=True,
+                )
+                st.link_button("Bei OTTO ansehen ↗", p.product_url, use_container_width=True)
