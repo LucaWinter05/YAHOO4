@@ -16,10 +16,6 @@ class get_data:
         self.ticker = quote['symbol']
         self.ist_aktie = quote.get("quoteType") in ("EQUITY", "STOCK")
         self.ist_derivat = quote.get("quoteType") in ("OPTION", "FUTURE", "FUTURES")
-        suchtext = " ".join(str(quote.get(feld, "")) for feld in ("symbol", "shortname", "longname"))
-        hebel = re.search(r"(\d+(?:[.,]\d+)?)\s*x(?:\s*(?:lev|leveraged))?", suchtext, re.IGNORECASE)
-        self.hebel = f"{hebel.group(1).replace(',', '.')}x" if hebel else None
-        self.ist_derivat = self.ist_derivat or self.hebel is not None
         self.aktie = yf.Ticker(self.ticker)
         self.währung = self.aktie.fast_info['currency']
         self.preis = converter.convert( self.aktie.fast_info['last_price'], self.währung, 'EUR'
