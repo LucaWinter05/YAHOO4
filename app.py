@@ -1,14 +1,19 @@
 import ast
+import random
+
 import streamlit as st
 from yahoo_anbindung import get_data
-from yahoo_anbindung import search
-import pandas as pd
-import produkte
 from streamlit_searchbox import st_searchbox
 import html as _html
 from otto_scraper import OttoProduct, get_product_details, search_otto
-
 import yfinance as yf
+import re
+
+import re
+
+with open('randomprodukte.txt', 'r', encoding='utf-8') as datei:
+    text = datei.read()
+    randomprodukte = re.findall(r'"([^"]+)"', text)
 
 def search_stocks(searchterm):
     if not searchterm or len(searchterm.strip()) < 2:
@@ -83,6 +88,32 @@ def img_html(image_url: str) -> str:
         return f'<div class="otto-img"><img src="{image_url}" alt="" loading="lazy"/></div>'
     return '<div class="otto-img otto-noimg">🛒<span>Kein Bild verfügbar</span></div>'
 
+import re
+
+def kurzname(produktname: str, hersteller: str) -> str:
+    text = produktname
+
+    if hersteller:
+        # Hersteller entfernen, egal ob GmbH / GMBH / gmbh + flexible Leerzeichen
+        pattern = r'\s+'.join(re.escape(w) for w in hersteller.split())
+        text = re.sub(pattern, ' ', text, flags=re.IGNORECASE)
+
+    # Sonderzeichen / Trennzeichen neutralisieren
+    text = re.sub(r'[\(\)\[\]\"\'„“”/\\,;:\.\-–—_…!?\*+|=]', ' ', text)
+
+    woerter = []
+    woerter.append(hersteller)
+    for w in text.split():
+        if re.search(r'\d', w):  # keine Wörter mit Zahlen
+            continue
+        if len(w) < 2:  # kein -, S, M, etc.
+            continue
+        if not woerter.__contains__(w):
+            woerter.append(w)
+        if len(woerter) == 3:
+            break
+    print(f"Old: {produktname}; New: {' '.join(woerter)}")
+    return ' '.join(woerter)
 
 #Design Part
 oben_links, oben_rechts = st.columns([5, 1])
@@ -96,7 +127,7 @@ st.title("Otto Aktien-Matcher")
 # Das interaktive Suchfeld einbinden
 firmenname = st_searchbox(
     search_stocks,
-    placeholder="Aktie suchen (z. B. Netflix, Nvidia oder n)...",
+    placeholder="Aktie suchen (z.B. Apple / AAPL)",
     key="stock_search"
 )
 
@@ -112,19 +143,15 @@ if firmenname:
     produkte = []
     for i in range(0, 3):
         try:
-            modus = "Suche"
-            query = ["tv", "socks", "dinosaur"]
-            produkt_url = ""
+            query = randomprodukte[random.randint(0, len(randomprodukte)-1)]
+            st.write(query)
             with st.spinner("Lade OTTO-Daten …"):
-                if modus == "Suche" and query[i].strip():
-                    produkte.append(search_otto(query[i].strip(), limit=1))
-                elif modus == "Produkt-URL" and produkt_url.strip():
-                    produkte = [get_product_details(produkt_url.strip())]
+                produkte.append(search_otto(query, limit=1))
             st.session_state["produkte"] = produkte
         except Exception as e:  # noqa: BLE001
             st.error(f"OTTO konnte nicht geladen werden: {e}")
             produkte = st.session_state.get("produkte", [])
-        name.append(produkte[i][0].title)
+        name.append(kurzname(produkte[i][0].title, produkte[i][0].brand))
         preis.append(produkte[i][0].price)
         nachkomma = 2
         while round((aktien_wert / produkte[i][0].price), nachkomma) == 0:
