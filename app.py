@@ -146,6 +146,8 @@ if firmenname:
         unternehmen = quote.get("longname") or quote.get("shortname") or übergabe.ticker
         st.write(f"Unternehmen: {unternehmen}")
         st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
+        st.write("**Kursverlauf der letzten 12 Monate:**")
+        st.line_chart(übergabe.historie)
         if übergabe.ist_aktie:
             st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
         else:
