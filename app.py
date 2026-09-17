@@ -5,6 +5,8 @@ from yahoo_anbindung import search
 import pandas as pd
 import produkte
 from streamlit_searchbox import st_searchbox
+import html as _html
+from otto_scraper import OttoProduct, get_product_details, search_otto
 
 import yfinance as yf
 
@@ -61,6 +63,27 @@ def kompakt_formatieren(betrag, währung):
     zahl = f"{rest:,.{dezimalstellen}f}".replace(",", "X").replace(".", ",").replace("X", ".")
     return f"{vorzeichen}{zahl} {währung}"
 
+
+def stars(rating: float | None) -> str:
+    if rating is None:
+        return "–"
+    full = int(rating)
+    half = "½" if rating - full >= 0.5 else ""
+    return "★" * full + half + f" ({rating})"
+
+
+def eur(value: float | None) -> str:
+    if value is None:
+        return ""
+    return f"{value:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def img_html(image_url: str) -> str:
+    if image_url:
+        return f'<div class="otto-img"><img src="{image_url}" alt="" loading="lazy"/></div>'
+    return '<div class="otto-img otto-noimg">🛒<span>Kein Bild verfügbar</span></div>'
+
+
 #Design Part
 oben_links, oben_rechts = st.columns([5, 1])
 with oben_links:
@@ -85,24 +108,29 @@ st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="c
 
 
 if firmenname:
-
-    meinprodukt = produkte.rand_prod()
-    extra1 = produkte.rand_prod()
-    extra2 = produkte.rand_prod()
-    while extra1.get_produkt() == meinprodukt.get_produkt():
-        extra1 = produkte.rand_prod()
-    while extra2.get_produkt() == meinprodukt.get_produkt() or extra2.get_produkt() == extra1.get_produkt():
-        extra2 = produkte.rand_prod()
+    try:
+        modus = "Suche"
+        query = "tv"
+        produkt_url = ""
+        produkte = []
+        with st.spinner("Lade OTTO-Daten …"):
+            if modus == "Suche" and query.strip():
+                produkte = search_otto(query.strip(), limit=1)
+            elif modus == "Produkt-URL" and produkt_url.strip():
+                produkte = [get_product_details(produkt_url.strip())]
+        st.session_state["produkte"] = produkte
+    except Exception as e:  # noqa: BLE001
+        st.error(f"OTTO konnte nicht geladen werden: {e}")
+        produkte = st.session_state.get("produkte", [])
+    name = produkte[0].title
+    preis = produkte[0].display_price
     übergabe = get_data(firmenname)
     aktien_wert = übergabe.preis
-    menge_haupt = meinprodukt.calc_wert(aktien_wert)
-    menge_extra1 = extra1.calc_wert(aktien_wert)
-    menge_extra2 = extra2.calc_wert(aktien_wert)
     st.write(
         f"## Für den Wert dieser Aktie könntest du dir entweder "
-        f"**{menge_haupt}x {meinprodukt.get_produkt()}**, "
-        f"**{menge_extra1}x {extra1.get_produkt()}** oder "
-        f"**{menge_extra2}x {extra2.get_produkt()}** kaufen!"
+        f"**{name}x {preis}**, "
+        f"**{name}x {preis}** oder "
+        f"**{name}x {preis}** kaufen!"
     )
 
     mitte_links, mitte_rechts = st.columns([1, 1])
@@ -114,20 +142,64 @@ if firmenname:
         st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
 
     with mitte_rechts:
-         bild_daten = meinprodukt.get_bild_url()
+        OTTO_RED = "#D52B1E"
+        st.markdown(
+            f"""
+            <style>
+            /* Alle Zeilen haben feste Höhen -> alle Karten sind gleich groß */
+            .otto-card {{
+                background: #fff; border-radius: 12px; padding: 14px;
+                box-shadow: 0 1px 6px rgba(0,0,0,.12);
+                display: flex; flex-direction: column;
+            }}
+            .otto-img {{
+                height: 200px; border-radius: 8px; background: #f7f7f7;
+                display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }}
+            .otto-img img {{ max-width: 100%; max-height: 100%; object-fit: contain; }}
+            .otto-noimg {{ flex-direction: column; gap: 4px; color: #aaa; font-size: 2.2rem; }}
+            .otto-noimg span {{ font-size: .8rem; }}
+            .otto-brand {{
+                color: #666; font-size: .8rem; text-transform: uppercase; height: 1.4em; margin-top: 8px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }}
+            .otto-title {{
+                font-weight: 700; font-size: .95rem; line-height: 1.3; height: 2.6em; overflow: hidden;
+                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            }}
+            .otto-offer {{ height: 1.5em; font-size: .85rem; }}
+            .otto-old {{ color: #888; text-decoration: line-through; }}
+            .otto-badge {{
+                display: inline-block; background: {OTTO_RED}; color: #fff;
+                font-size: .75rem; font-weight: 700; border-radius: 6px; padding: 1px 8px; margin-right: 6px;
+            }}
+            .otto-price {{ color: {OTTO_RED}; font-weight: 800; font-size: 1.25rem; height: 1.8em; }}
+            .otto-meta {{
+                color: #555; font-size: .8rem; height: 1.5em;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
 
-         erstes_bild = get_erstes_bild(bild_daten)
-         if erstes_bild:
-             st.image(erstes_bild, width=400)
-
-         st.write("##", meinprodukt.get_produkt())
-
-    
-
-
-
-
-
-
-
-
+        for i, p in enumerate(produkte):
+            offer = "&nbsp;"
+            if p.old_price and p.discount_pct:
+                offer = f'<span class="otto-badge">-{p.discount_pct} %</span><span class="otto-old">UVP {eur(p.old_price)}</span>'
+            reviews = f" · {p.review_count} Bewertungen" if p.review_count else ""
+            st.markdown(
+                f"""
+                    <div class="otto-card">
+                      {img_html(p.image_url)}
+                      <div class="otto-brand">{_html.escape(p.brand) or "&nbsp;"}</div>
+                      <div class="otto-title">{_html.escape(p.title)}</div>
+                      <div class="otto-offer">{offer}</div>
+                      <div class="otto-price">{p.display_price}</div>
+                      <div class="otto-meta">⭐ {stars(p.rating)}{reviews}</div>
+                      <div class="otto-meta">📦 {_html.escape(p.availability) or "Verfügbarkeit siehe otto.de"}</div>
+                    </div>
+                    """,
+                unsafe_allow_html=True,
+            )
+            st.link_button("Bei OTTO ansehen ↗", p.product_url, use_container_width=True)
