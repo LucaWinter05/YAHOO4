@@ -143,7 +143,6 @@ if firmenname:
     for i in range(0, 3):
         try:
             query = randomprodukte[random.randint(0, len(randomprodukte)-1)]
-            st.write(query)
             with st.spinner("Lade OTTO-Daten …"):
                 produkte.append(search_otto(query, limit=1))
             st.session_state["produkte"] = produkte
