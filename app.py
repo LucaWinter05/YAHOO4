@@ -170,13 +170,17 @@ if firmenname:
         quote = übergabe.suche.quotes[0]
         unternehmen = quote.get("longname") or quote.get("shortname") or übergabe.ticker
         st.write(f"Unternehmen: {unternehmen}")
-        st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
+        if übergabe.ist_aktie:
+            st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
         st.write("**Kursverlauf der letzten 12 Monate:**")
         st.line_chart(übergabe.historie)
         if übergabe.ist_aktie:
             st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
         else:
             st.metric("AUM", kompakt_formatieren(übergabe.fondgröße, übergabe.währung))
+        if übergabe.ist_derivat:
+            st.metric("Derivat Preis", f"{übergabe.derivat_preis:.2f} {übergabe.währung}")
+            st.write("GIG - Gehebelt ist Geil")
 
     with mitte_rechts:
         OTTO_RED = "#D52B1E"
