@@ -87,8 +87,23 @@ st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="c
 if firmenname:
 
     meinprodukt = produkte.rand_prod()
+    extra1 = produkte.rand_prod()
+    extra2 = produkte.rand_prod()
+    while extra1.get_produkt() == meinprodukt.get_produkt():
+        extra1 = produkte.rand_prod()
+    while extra2.get_produkt() == meinprodukt.get_produkt() or extra2.get_produkt() == extra1.get_produkt():
+        extra2 = produkte.rand_prod()
     übergabe = get_data(firmenname)
-    st.write(f'## Du könntest für den Wert dieser Aktie {meinprodukt.calc_wert(übergabe.preis)} {meinprodukt.get_produkt()} kaufen!')
+    aktien_wert = übergabe.preis
+    menge_haupt = meinprodukt.calc_wert(aktien_wert)
+    menge_extra1 = extra1.calc_wert(aktien_wert)
+    menge_extra2 = extra2.calc_wert(aktien_wert)
+    st.write(
+        f"## Für den Wert dieser Aktie könntest du dir entweder "
+        f"**{menge_haupt}x {meinprodukt.get_produkt()}**, "
+        f"**{menge_extra1}x {extra1.get_produkt()}** oder "
+        f"**{menge_extra2}x {extra2.get_produkt()}** kaufen!"
+    )
 
     mitte_links, mitte_rechts = st.columns([1, 1])
 
