@@ -143,7 +143,6 @@ if firmenname:
     for i in range(0, 3):
         try:
             query = randomprodukte[random.randint(0, len(randomprodukte)-1)]
-            st.write(query)
             with st.spinner("Lade OTTO-Daten …"):
                 produkte.append(search_otto(query, limit=1))
             st.session_state["produkte"] = produkte
@@ -177,7 +176,7 @@ if firmenname:
         if übergabe.ist_aktie:
             st.metric("Marktkapitalisierung", kompakt_formatieren(übergabe.marktkapitalisierung, übergabe.währung))
         else:
-            st.metric("AUM", kompakt_formatieren(übergabe.fondsgröße, übergabe.währung))
+            st.metric("AUM", kompakt_formatieren(übergabe.fondgröße, übergabe.währung))
 
     with mitte_rechts:
         OTTO_RED = "#D52B1E"
