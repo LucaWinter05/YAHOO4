@@ -185,6 +185,8 @@ if auswahl:
             if len(link_produkte) > 0:
                 link_modus = True
 
+    übergabe = get_data(auswahl)
+    aktien_wert = übergabe.preis
     if link_modus:
         haupt_row = con.execute(
             "SELECT suchbegriff, titel, marke, preis, old_price, currency, bild_url, produkt_url, "
@@ -193,15 +195,14 @@ if auswahl:
             (link_produkte[0],),
         ).fetchone()
     else:
-      aktien_wert = übergabe.preis
-      haupt_row = con.execute(
-        "SELECT suchbegriff, titel, marke, preis, old_price, currency, bild_url, produkt_url, "
-        "bewertung, anzahl_bewertungen, verfuegbarkeit, sku, gtin "
-        "FROM produkte WHERE preis IS NOT NULL AND preis > 0 AND preis <= ? "
-        "AND scraped_date = (SELECT MAX(scraped_date) FROM produkte) "
-        "ORDER BY preis DESC LIMIT 1",
-        (aktien_wert,),
-    ).fetchone()
+        haupt_row = con.execute(
+            "SELECT suchbegriff, titel, marke, preis, old_price, currency, bild_url, produkt_url, "
+            "bewertung, anzahl_bewertungen, verfuegbarkeit, sku, gtin "
+            "FROM produkte WHERE preis IS NOT NULL AND preis > 0 AND preis <= ? "
+            "AND scraped_date = (SELECT MAX(scraped_date) FROM produkte) "
+            "ORDER BY preis DESC LIMIT 1",
+            (aktien_wert,),
+        ).fetchone()
     if haupt_row is None:
         st.error("Keine Produkte unter dem Aktienpreis in der Datenbank gefunden.")
         st.stop()
