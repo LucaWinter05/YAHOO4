@@ -21,7 +21,7 @@ jobs:
         run: uv sync
 
       - name: Scrape laufen lassen
-        run: python daily_scrape.py
+        run: uv run daily_scrape.py
 
       - name: Datenbank zurückschreiben
         run: |
