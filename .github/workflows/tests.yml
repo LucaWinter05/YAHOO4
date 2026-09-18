@@ -1,0 +1,22 @@
+name: Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
+
+      - name: Abhängigkeiten installieren
+        run: uv sync --group dev
+
+      - name: Tests laufen lassen
+        run: uv run pytest

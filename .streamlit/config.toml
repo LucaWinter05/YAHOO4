@@ -1,0 +1,42 @@
+# Natives Streamlit-Theme des OTTO Aktien-Matchers.
+#
+# Warum das hier steht und nicht nur im CSS: Widgets, Tabellen und Menüs
+# rendert Streamlit selbst. Nur wenn die Farben auch hier hinterlegt sind,
+# passen Eingabefelder & Co. zum Rest der Oberfläche – in beiden Modi.
+# Umschalten kann man im Menü oben rechts unter „Settings → Theme".
+
+[theme]
+primaryColor = "#D52B1E"
+font = "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+baseFontSize = 15
+
+[theme.light]
+base = "light"
+primaryColor = "#D52B1E"
+backgroundColor = "#F6F7FA"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#101828"
+linkColor = "#C2261A"
+codeBackgroundColor = "#F1F2F6"
+
+[theme.light.sidebar]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F6F7FA"
+
+[theme.dark]
+base = "dark"
+primaryColor = "#FF5A47"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1A202B"
+textColor = "#F2F4F8"
+linkColor = "#FF8A7A"
+codeBackgroundColor = "#151A23"
+
+[theme.dark.sidebar]
+backgroundColor = "#151A23"
+secondaryBackgroundColor = "#1A202B"
+
+[client]
+# "viewer" blendet die Entwickler-Optionen aus, lässt aber „Settings" stehen –
+# dort schaltet man das Theme um.
+toolbarMode = "viewer"
