@@ -223,7 +223,7 @@ if firmenname:
         unternehmen = quote.get("longname") or quote.get("shortname") or übergabe.ticker
         st.write(f"Unternehmen: {unternehmen}")
         if übergabe.ist_aktie:
-            st.metric("last Price", f"{übergabe.preis:.2f} {übergabe.währung}")
+            st.metric("letzter Preis", f"{übergabe.preis:.2f} {übergabe.währung}")
         st.write("**Kursverlauf der letzten 12 Monate:**")
         st.line_chart(übergabe.historie)
         if übergabe.ist_aktie:
@@ -232,13 +232,14 @@ if firmenname:
             st.metric("AUM", kompakt_formatieren(übergabe.fondgröße, übergabe.währung))
         if übergabe.ist_derivat:
             st.metric("Derivat Preis", f"{übergabe.derivat_preis:.2f} {übergabe.währung}")
-            st.write("**GIG - Gehebelt ist Geil**")
+            st.markdown(f"<p style='font-size: 150%;'>GIG - Gehebelt ist Geil</p>", unsafe_allow_html=True)
             
-            st.write ("**Hebel:** " f"{übergabe.hebel:.2f}")
+            st.markdown(f"<p style='font-size: 150%;'>Hebel: {übergabe.hebel:.2f}</p>", unsafe_allow_html=True)
             
             st.audio("g-i-g.mp3", format= "audio/mp3", autoplay= True)
 
     with mitte_rechts:
+
         OTTO_RED = "#D52B1E"
         st.markdown(
             f"""
@@ -253,6 +254,7 @@ if firmenname:
                 height: 200px; border-radius: 8px; background: #f7f7f7;
                 display: flex; align-items: center; justify-content: center; overflow: hidden;
             }}
+            
             .otto-img img {{ max-width: 100%; max-height: 100%; object-fit: contain; }}
             .otto-noimg {{ flex-direction: column; gap: 4px; color: #aaa; font-size: 2.2rem; }}
             .otto-noimg span {{ font-size: .8rem; }}
@@ -278,8 +280,13 @@ if firmenname:
             </style>
             """,
             unsafe_allow_html=True,
+            
         )
+
         produktkarte(haupt)
+        if übergabe.ist_aktie:
+            st.markdown(f"<p style='font-size: 150%;'>Zielpreis 1y:  {übergabe.goal:.2f} {übergabe.währung}</p>", unsafe_allow_html=True)
+
 
     if alternativen:
         alt_texte = [f"**{n}x {kurzname(p.title, p.brand)}**" for p, n in alternativen]
