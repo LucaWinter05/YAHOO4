@@ -8,6 +8,9 @@ import html as _html
 import yfinance as yf
 import re
 from otto_scraper import OttoProduct
+from urllib.parse import urlencode
+from st_copy import copy_button
+
 
 con = sqlite3.connect("otto_produkte.db")
 con.row_factory = sqlite3.Row
@@ -293,3 +296,10 @@ if firmenname:
             with col:
                 st.write(f"**{n}x {kurzname(p.title, p.brand)}** ({eur(p.price)} / Stück)")
                 produktkarte(p)
+    _params = {"ticker": firmenname, "p0": haupt.product_url}
+    for _i, (_p, _n) in enumerate(alternativen[:3], start=1):
+        _params[f"p{_i}"] = _p.product_url
+    share_link = "https://otto-aktien-matcher.streamlit.app/?" + urlencode(_params)
+    copy_button(share_link, tooltip="Ergebnis-Link kopieren", copied_label="Kopiert! ✅", icon="st")
+    st.code(share_link)       
+             
