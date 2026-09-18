@@ -192,7 +192,11 @@ if firmenname:
             st.metric("AUM", kompakt_formatieren(übergabe.fondgröße, übergabe.währung))
         if übergabe.ist_derivat:
             st.metric("Derivat Preis", f"{übergabe.derivat_preis:.2f} {übergabe.währung}")
-            st.write("GIG - Gehebelt ist Geil")
+            st.write("**GIG - Gehebelt ist Geil**")
+            
+            st.write ("**Hebel:** " f"{übergabe.hebel:.2f}")
+            
+            st.audio("g-i-g.mp3", format= "audio/mp3", autoplay= True)
 
     with mitte_rechts:
         OTTO_RED = "#D52B1E"

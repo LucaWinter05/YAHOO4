@@ -18,8 +18,8 @@ class get_data:
         self.ist_derivat = quote.get("quoteType") in ("OPTION", "FUTURE", "FUTURES")
         self.aktie = yf.Ticker(self.ticker)
         self.währung = self.aktie.fast_info['currency']
-        self.preis = converter.convert( self.aktie.fast_info['last_price'], self.währung, 'EUR'
-        )
+        self.preis = converter.convert( self.aktie.fast_info['last_price'], self.währung, 'EUR') 
+        
         self.währung = "EUR"
         
         self.historie = self.aktie.history(period="1y")[['Close']]
@@ -35,12 +35,17 @@ class get_data:
             self.fondgröße = converter.convert(fondgröße, self.währung, 'EUR') if fondgröße is not None else None
         
         if self.ist_derivat:
+            
             original_waehrung = self.aktie.fast_info['currency']
             self.derivat_preis = converter.convert(
                 self.aktie.fast_info["last_price"],
                 original_waehrung,
-                "EUR"
-            ) 
+                "EUR")
+            basiswert = yf.Ticker(self.aktie.info['underlyingSymbol'])
+            self.basiswert_preis = converter.convert(basiswert.fast_info['last_price'], basiswert.fast_info['currency'])
+            self.hebel= self.basiswert_preis / self.derivat_preis
+            
+            
 class search:
     def __init__(self, searchterm):
         self.results = yf.Search(searchterm)
