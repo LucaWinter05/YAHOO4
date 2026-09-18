@@ -115,6 +115,32 @@ def kurzname(produktname: str, hersteller: str) -> str:
             break
     return ' '.join(woerter)
 
+
+OTTO_RED = "#D52B1E"
+
+
+def produktkarte(p: OttoProduct) -> None:
+    """Rendert eine OTTO-Produktkarte inkl. Link-Button."""
+    offer = "&nbsp;"
+    if p.old_price and p.discount_pct:
+        offer = f'<span class="otto-badge">-{p.discount_pct} %</span><span class="otto-old">UVP {eur(p.old_price)}</span>'
+    reviews = f" · {p.review_count} Bewertungen" if p.review_count else ""
+    st.markdown(
+        f"""
+            <div class="otto-card">
+              {img_html(p.image_url)}
+              <div class="otto-brand">{_html.escape(p.brand) or "&nbsp;"}</div>
+              <div class="otto-title" style="color:black">{_html.escape(p.title)}</div>
+              <div class="otto-offer">{offer}</div>
+              <div class="otto-price">{p.display_price}</div>
+              <div class="otto-meta">⭐ {stars(p.rating)}{reviews}</div>
+              <div class="otto-meta">📦 {_html.escape(p.availability) or "Verfügbarkeit siehe otto.de"}</div>
+            </div>
+            """,
+        unsafe_allow_html=True,
+    )
+    st.link_button("Bei OTTO ansehen ↗", p.product_url, use_container_width=True)
+
 #Design Part
 oben_links, oben_rechts = st.columns([5, 1])
 with oben_links:
@@ -137,43 +163,54 @@ st.set_page_config(page_title="OTTO Aktien-Matcher", page_icon="🔴", layout="c
 if firmenname:
     übergabe = get_data(firmenname)
     aktien_wert = übergabe.preis
-    row = con.execute(
-        "SELECT titel, marke, preis, old_price, currency, bild_url, produkt_url, "
+    haupt_row = con.execute(
+        "SELECT suchbegriff, titel, marke, preis, old_price, currency, bild_url, produkt_url, "
         "bewertung, anzahl_bewertungen, verfuegbarkeit, sku, gtin "
-        "FROM produkte WHERE preis IS NOT NULL AND preis <= ? "
+        "FROM produkte WHERE preis IS NOT NULL AND preis > 0 AND preis <= ? "
+        "AND scraped_date = (SELECT MAX(scraped_date) FROM produkte) "
         "ORDER BY preis DESC LIMIT 1",
         (aktien_wert,),
     ).fetchone()
-    if row is None:  # nichts darunter -> günstigstes darüber als Fallback
-        row = con.execute(
-            "SELECT titel, marke, preis, old_price, currency, bild_url, produkt_url, "
-            "bewertung, anzahl_bewertungen, verfuegbarkeit, sku, gtin "
-            "FROM produkte WHERE preis IS NOT NULL "
-            "ORDER BY preis ASC LIMIT 1",
-        ).fetchone()
-    if row is None:
-        st.error("Keine Produkte in der Datenbank gefunden.")
+    if haupt_row is None:
+        st.error("Keine Produkte unter dem Aktienpreis in der Datenbank gefunden.")
         st.stop()
-    p = OttoProduct(
-        title=row["titel"], brand=row["marke"] or "", price=row["preis"],
-        old_price=row["old_price"], currency=row["currency"] or "EUR",
-        image_url=row["bild_url"] or "", product_url=row["produkt_url"],
-        rating=row["bewertung"], review_count=row["anzahl_bewertungen"],
-        availability=row["verfuegbarkeit"] or "", sku=row["sku"] or "",
-        gtin=row["gtin"] or "",
-    )
-    produkte = [p]
-    name = kurzname(p.title, p.brand)
-    preis = p.price
-    nachkomma = 2
-    while round((aktien_wert / preis), nachkomma) == 0:
-        nachkomma += 1
-    anzahl = round(aktien_wert / preis, nachkomma)
+
+    def _map(row):
+        return OttoProduct(
+            title=row["titel"], brand=row["marke"] or "", price=row["preis"],
+            old_price=row["old_price"], currency=row["currency"] or "EUR",
+            image_url=row["bild_url"] or "", product_url=row["produkt_url"],
+            rating=row["bewertung"], review_count=row["anzahl_bewertungen"],
+            availability=row["verfuegbarkeit"] or "", sku=row["sku"] or "",
+            gtin=row["gtin"] or "",
+        )
+
+    haupt = _map(haupt_row)
+    rest = round(aktien_wert - haupt.price, 2)
 
     st.write(
-        f"### Für den Wert dieser Aktie könntest du dir ca. "
-        f"**{anzahl}x {name}** kaufen!"
+        f"### Du kannst dir anstelle der Aktie auch 1x {kurzname(haupt.title, haupt.brand)} kaufen. "
+        f"Und du hättest sogar noch {eur(rest)} über!"
     )
+
+    # Alternativen mit Vielfachen (mind. 2x leistbar), ohne das Hauptprodukt
+    alt_rows = con.execute(
+        "SELECT suchbegriff, titel, marke, preis, old_price, currency, bild_url, produkt_url, "
+        "bewertung, anzahl_bewertungen, verfuegbarkeit, sku, gtin "
+        "FROM produkte WHERE preis IS NOT NULL AND preis > 0 AND preis <= ? "
+        "AND produkt_url != ? "
+        "AND scraped_date = (SELECT MAX(scraped_date) FROM produkte) "
+        "ORDER BY preis DESC LIMIT 30",
+        (aktien_wert / 2, haupt.product_url),
+    ).fetchall()
+    alternativen = []
+    gesehen = {haupt_row["suchbegriff"]}
+    for row in alt_rows:
+        if row["suchbegriff"] not in gesehen:
+            alternativen.append((_map(row), max(2, int(aktien_wert // row["preis"]))))
+            gesehen.add(row["suchbegriff"])
+        if len(alternativen) == 3:
+            break
 
     mitte_links, mitte_rechts = st.columns([1, 1])
 
@@ -235,23 +272,20 @@ if firmenname:
             """,
             unsafe_allow_html=True,
         )
-        for p in produkte:
-            offer = "&nbsp;"
-            if p.old_price and p.discount_pct:
-                offer = f'<span class="otto-badge">-{p.discount_pct} %</span><span class="otto-old">UVP {eur(p.old_price)}</span>'
-            reviews = f" · {p.review_count} Bewertungen" if p.review_count else ""
-            st.markdown(
-                f"""
-                    <div class="otto-card">
-                      {img_html(p.image_url)}
-                      <div class="otto-brand">{_html.escape(p.brand) or "&nbsp;"}</div>
-                      <div class="otto-title" style="color:black">{_html.escape(p.title)}</div>
-                      <div class="otto-offer">{offer}</div>
-                      <div class="otto-price">{p.display_price}</div>
-                      <div class="otto-meta">⭐ {stars(p.rating)}{reviews}</div>
-                      <div class="otto-meta">📦 {_html.escape(p.availability) or "Verfügbarkeit siehe otto.de"}</div>
-                    </div>
-                    """,
-                unsafe_allow_html=True,
+        produktkarte(haupt)
+
+    if alternativen:
+        alt_texte = [f"**{n}x {kurzname(p.title, p.brand)}**" for p, n in alternativen]
+        if len(alt_texte) > 1:
+            st.write(
+                "### Alternativ auch z.B.: "
+                + ", ".join(alt_texte[:-1])
+                + f" oder {alt_texte[-1]}."
             )
-            st.link_button("Bei OTTO ansehen ↗", p.product_url, use_container_width=True)
+        else:
+            st.write(f"### Alternativ auch z.B.: {alt_texte[0]}.")
+        cols = st.columns(len(alternativen))
+        for col, (p, n) in zip(cols, alternativen):
+            with col:
+                st.write(f"**{n}x {kurzname(p.title, p.brand)}** ({eur(p.price)} / Stück)")
+                produktkarte(p)
