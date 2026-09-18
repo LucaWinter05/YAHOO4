@@ -1,4 +1,5 @@
 import ast
+import base64
 import random
 import sqlite3
 import streamlit as st
@@ -149,7 +150,14 @@ oben_links, oben_rechts = st.columns([5, 1])
 with oben_links:
     st.write("")
 with oben_rechts:
-    st.image("otto.png", width=200)
+    with open("otto.png", "rb") as datei:
+        logo_daten = base64.b64encode(datei.read()).decode()
+    st.markdown(
+        '<a href="https://otto-aktien-matcher.streamlit.app/" target="_self">'
+        f'<img src="data:image/png;base64,{logo_daten}" width="200"></a>',
+        unsafe_allow_html=True,
+    )
+    
 
 st.title("Otto Aktien-Matcher")
 
