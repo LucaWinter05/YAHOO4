@@ -255,10 +255,10 @@ if auswahl:
         "AND scraped_date = (SELECT MAX(scraped_date) FROM produkte) "
         "ORDER BY preis DESC LIMIT 30",
         (aktien_wert / 2, haupt.product_url),
-    ).fetchall()
-    alternativen = []
-    gesehen = {haupt_row["suchbegriff"]}
-    for row in alt_rows:
+     ).fetchall()
+     alternativen = []
+     gesehen = {haupt_row["suchbegriff"]}
+     for row in alt_rows:
         if row["suchbegriff"] not in gesehen:
             alternativen.append((_map(row), max(2, int(aktien_wert // row["preis"]))))
             gesehen.add(row["suchbegriff"])
