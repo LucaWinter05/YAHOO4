@@ -1,52 +1,64 @@
+"""Veraltete Yahoo-Anbindung – bitte :mod:`kern.markt` verwenden.
+
+Diese Datei bleibt nur erhalten, damit ältere Skripte und Notebooks nicht
+brechen. Sie enthält keine eigene Logik mehr, sondern reicht alles an
+:func:`kern.markt.lade_markt` durch. Dort sind die Dinge behoben, die hier
+früher schiefgingen:
+
+* Marktkapitalisierung britischer Werte lag um den Faktor 100 daneben
+  (Kurse notieren in Pence, die Marktkapitalisierung in Pfund).
+* Jeder Aufruf löste neue Yahoo-Requests aus – jetzt greift ein Cache.
+* Fehlende Felder bei ETFs und Krypto führten zu ``KeyError``.
+"""
+
+from __future__ import annotations
+
+import warnings
+
+from kern.markt import MarktDaten, lade_markt, suche
+
+__all__ = ["get_data", "search", "MarktDaten"]
 
 
-import yfinance as yf
-import currency_converter as cc
-import re
+class get_data:  # noqa: N801 – Name aus der ersten Version beibehalten
+    """Dünne Hülle um :func:`kern.markt.lade_markt`.
 
+    Stellt die Attribute der alten Klasse bereit (``preis``, ``ticker``,
+    ``historie``, ``ist_aktie`` …) und ergänzt sie um alles, was
+    :class:`kern.markt.MarktDaten` sonst noch kennt.
+    """
 
+    def __init__(self, übergabe: str):
+        warnings.warn(
+            "yahoo_anbindung.get_data ist veraltet – nutze kern.markt.lade_markt().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.daten: MarktDaten = lade_markt(übergabe)
+        if self.daten.fehler:
+            raise ValueError(self.daten.fehler)
 
-class get_data:
-    def __init__(self, übergabe):
-
-        self.daten = übergabe
-        converter = cc.CurrencyConverter()
-        self.suche = yf.Search(self.daten)
-        quote = self.suche.quotes[0]
-        self.ticker = quote['symbol']
-        self.ist_aktie = quote.get("quoteType") in ("EQUITY", "STOCK")
-        self.ist_derivat = quote.get("quoteType") in ("OPTION", "FUTURE", "FUTURES")
-        self.aktie = yf.Ticker(self.ticker)
-        
-        self.währung = "GBP" if self.aktie.fast_info['currency'] == "GBp" else self.aktie.fast_info['currency']
-        self.preis = converter.convert(self.aktie.fast_info['last_price'] / 100 if self.aktie.fast_info['currency'] == "GBp" else self.aktie.fast_info['last_price'], self.währung, 'EUR')
+        # Feldnamen der ersten Version
+        self.ticker = self.daten.ticker
+        self.preis = self.daten.preis
         self.währung = "EUR"
-        
-        self.historie = self.aktie.history(period="1y")[['Close']]
-        self.goal = self.aktie.fast_info.get('1y Target Est', self.aktie.info.get('targetMeanPrice', 0))
+        self.historie = self.daten.historie
+        self.goal = self.daten.kursziel
+        self.ist_aktie = self.daten.ist_aktie
+        self.ist_derivat = self.daten.ist_derivat
+        self.marktkapitalisierung = self.daten.marktkapitalisierung
+        self.fondgröße = self.daten.fondsgroesse
+        self.derivat_preis = self.daten.preis if self.daten.ist_derivat else None
+        self.basiswert_preis = self.daten.basiswert_preis
+        self.hebel = self.daten.hebel
 
-        if self.ist_aktie:
-            self.marktkapitalisierung = converter.convert(self.aktie.fast_info['market_cap'], self.währung, 'EUR')
-            
-        else:
-            fondgröße = (self.aktie.info.get('totalAssets') or
-                          self.aktie.info.get('netAssets') or
-                          quote.get('totalAssets') or
-                          quote.get('netAssets'))
-            self.fondgröße = converter.convert(fondgröße, self.währung, 'EUR') if fondgröße is not None else None
-        
-        if self.ist_derivat:
-            
-            original_waehrung = self.aktie.fast_info['currency']
-            self.derivat_preis = converter.convert(
-                self.aktie.fast_info["last_price"],
-                original_waehrung,
-                "EUR")
-            basiswert = yf.Ticker(self.aktie.info['underlyingSymbol'])
-            self.basiswert_preis = converter.convert(basiswert.fast_info['last_price'], basiswert.fast_info['currency'])
-            self.hebel= self.basiswert_preis / self.derivat_preis
-            
-            
-class search:
-    def __init__(self, searchterm):
-        self.results = yf.Search(searchterm)
+    def __getattr__(self, name: str):
+        # Alles Übrige direkt vom neuen Datenobjekt holen
+        return getattr(self.__dict__["daten"], name)
+
+
+class search:  # noqa: N801
+    """Alte Suchhülle – liefert jetzt die gecachten Treffer aus ``kern.markt``."""
+
+    def __init__(self, searchterm: str):
+        self.results = suche(searchterm)
