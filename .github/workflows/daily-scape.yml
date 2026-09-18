@@ -1,0 +1,32 @@
+name: Daily OTTO Scrape
+
+on:
+  schedule:
+    - cron: "0 5 * * *"   # täglich 05:00 UTC ≈ 06:00/07:00 deutsche Zeit
+  workflow_dispatch:       # Button für manuellen Start
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
+
+      - name: Abhängigkeiten installieren
+        run: uv sync
+
+      - name: Scrape laufen lassen
+        run: python daily_scrape.py
+
+      - name: Datenbank zurückschreiben
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add otto_produkte.db
+          git diff --staged --quiet || git commit -m "daily scrape $(date +%F)"
+          git push
